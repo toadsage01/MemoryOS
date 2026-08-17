@@ -53,7 +53,10 @@ class Settings(BaseSettings):
     curator_api_key: str = ""
 
     # ── Tunables (labelled as starting points per §4.5) ───────────────
-    dedup_fused_score_threshold: float = 0.7
+    # See docs/threshold_tuning.md. 0.7 (literal from blueprint) would be a
+    # no-op since max RRF score is 2/60 ≈ 0.0333. 0.02 is the corrected
+    # starting point; tune against real captures.
+    dedup_fused_score_threshold: float = 0.02
     brief_max_words: int = 300
 
     @property

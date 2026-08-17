@@ -287,6 +287,13 @@ async function onCaptureClick() {
     });
     if (!r.ok) throw new Error(r.error);
     setStatus(`captured (${transcript.length} chars) — conv ${r.data.conversation_id.slice(0, 8)}`, "ok");
+    // First successful manual capture — enable auto-capture for this tab
+    // (per §5: implement only after manual Brief/Capture works end-to-end).
+    const { sbs_autocapture_enabled } = await chrome.storage.local.get(["sbs_autocapture_enabled"]);
+    if (!sbs_autocapture_enabled) {
+      await chrome.storage.local.set({ sbs_autocapture_enabled: true });
+      startAutoCaptureWatcher();
+    }
   } catch (err) {
     setStatus(String(err.message || err), "error");
   }
@@ -298,6 +305,74 @@ function setStatus(msg, cls = "") {
   el.className = "sbs-status" + (cls ? " " + cls : "");
 }
 
+// ── Debounced auto-capture (§5 of blueprint, optional but in-scope) ─────
+// Watches the DOM for new assistant messages. After AUTOCAPTURE_TURNS
+// new assistant turns, fires an automatic /ingest call (no button press
+// needed). Only kicks in after the first manual Capture so we know the
+// user has confirmed the project + adapter work end-to-end.
+
+const AUTOCAPTURE_TURNS = 6;  // how many new assistant turns trigger a capture
+const AUTOCAPTURE_COOLDOWN_MS = 60_000;  // don't auto-capture more than once / min
+let lastAutoCaptureAt = 0;
+let newTurnsSinceLastCapture = 0;
+let lastSeenTurnCount = 0;
+let autoCaptureObserver = null;
+let autoCaptureEverFired = false;
+
+function startAutoCaptureWatcher() {
+  if (autoCaptureObserver) return;
+  // Only enable if the adapter exposes readTranscript and the user has
+  // already done at least one manual capture (persisted flag).
+  chrome.storage.local.get(["sbs_autocapture_enabled"], ({ sbs_autocapture_enabled }) => {
+    // Disabled until first manual capture, per §5 ("implement only after
+    // manual Brief/Capture works end-to-end"). The flag flips to true
+    // after the first successful manual Capture.
+    if (!sbs_autocapture_enabled) return;
+
+    autoCaptureObserver = new MutationObserver(() => {
+      const turns = countTranscriptTurns();
+      if (turns > lastSeenTurnCount) {
+        newTurnsSinceLastCapture += turns - lastSeenTurnCount;
+        lastSeenTurnCount = turns;
+        if (
+          newTurnsSinceLastCapture >= AUTOCAPTURE_TURNS &&
+          Date.now() - lastAutoCaptureAt > AUTOCAPTURE_COOLDOWN_MS
+        ) {
+          newTurnsSinceLastCapture = 0;
+          lastAutoCaptureAt = Date.now();
+          autoCaptureEverFired = true;
+          // Reuse the manual capture path but show a distinct status
+          setStatus("auto-capture firing…");
+          onCaptureClick().then(() => {
+            setStatus("auto-captured ✓", "ok");
+          });
+        }
+      } else if (turns < lastSeenTurnCount) {
+        // User navigated to a different conversation — reset the counter
+        lastSeenTurnCount = turns;
+        newTurnsSinceLastCapture = 0;
+      }
+    });
+    // Observe the whole body subtree — coarse but reliable across SPAs
+    autoCaptureObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: false,
+    });
+  });
+}
+
+function countTranscriptTurns() {
+  if (!currentAdapter || !currentAdapter.readTranscript) return 0;
+  try {
+    const { transcript } = currentAdapter.readTranscript();
+    // Count speaker-prefixed lines
+    return (transcript.match(/^(User|Assistant|Unknown):/gm) || []).length;
+  } catch {
+    return 0;
+  }
+}
+
 // ── Boot ─────────────────────────────────────────────────────────────────
 function boot() {
   currentAdapter = detectAdapter();
@@ -305,10 +380,6 @@ function boot() {
     // Not on a known site — silently do nothing.
     return;
   }
-  // The DOM might not be ready yet on these SPA sites. Wait for the
-  // first user gesture (e.g. clicking the extension icon opens the popup,
-  // but the panel is always injected by the content script). Render once
-  // and re-render if needed.
   renderWhenReady();
 }
 
@@ -321,7 +392,11 @@ function renderWhenReady() {
     attempts++;
     if (document.body) {
       clearInterval(t);
-      renderPanel();
+      renderPanel().then(() => {
+        // Set the initial baseline
+        lastSeenTurnCount = countTranscriptTurns();
+        startAutoCaptureWatcher();
+      });
       return;
     }
     if (attempts >= maxAttempts) {
