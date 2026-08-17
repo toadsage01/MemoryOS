@@ -1,0 +1,154 @@
+:root {
+  --bg: #0f172a;        /* slate-900 */
+  --fg: #f1f5f9;        /* slate-100 */
+  --muted: #94a3b8;     /* slate-400 */
+  --accent: #38bdf8;    /* sky-400 */
+  --accent-bg: #0c4a6e; /* sky-900 */
+  --err: #fca5a5;       /* red-300 */
+  --ok: #86efac;        /* green-300 */
+  --border: #1e293b;    /* slate-800 */
+  --pad: 14px;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  width: 320px;
+  font-size: 13px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--pad);
+  border-bottom: 1px solid var(--border);
+}
+
+h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.badge {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+section {
+  padding: var(--pad);
+}
+
+.hint {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+  font-size: 12px;
+}
+
+.hint.small {
+  font-size: 11px;
+  margin-top: 10px;
+}
+
+code {
+  background: var(--border);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--border);
+  border: 1px solid #334155;
+  color: var(--fg);
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 8px;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button {
+  cursor: pointer;
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+button:hover {
+  background: #075985;
+}
+
+button.primary {
+  background: #1e40af;
+  border-color: #3b82f6;
+}
+
+button.primary:hover {
+  background: #1e3a8a;
+}
+
+label {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+
+#refresh-projects {
+  width: 32px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+#project-select {
+  margin-bottom: 0;
+  flex-grow: 1;
+}
+
+label[for="project-select"] + div {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+#project-select,
+#refresh-projects {
+  margin: 0;
+}
+
+.flex-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}

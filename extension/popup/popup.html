@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Second Brain Sync</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Second Brain Sync</h1>
+      <span id="status" class="badge">checking…</span>
+    </header>
+
+    <section id="setup">
+      <p class="hint">
+        Paste the <code>LOCAL_AUTH_TOKEN</code> from your
+        <code>.env</code> file. The backend printed it on first boot.
+      </p>
+      <input
+        type="password"
+        id="token-input"
+        placeholder="paste token here…"
+        autocomplete="off"
+      />
+      <input
+        type="text"
+        id="backend-input"
+        placeholder="http://127.0.0.1:8000"
+      />
+      <button id="save-btn">save</button>
+    </section>
+
+    <section id="controls" hidden>
+      <label for="project-select">active project</label>
+      <select id="project-select"></select>
+      <button id="refresh-projects" title="refresh projects">↻</button>
+      <hr />
+      <button id="open-tab" class="primary">open claude.ai</button>
+      <p class="hint small">
+        Pick a project, then use the floating panel in any LLM tab.
+      </p>
+    </section>
+  </body>
+  <script src="popup.js" type="module"></script>
+</html>
