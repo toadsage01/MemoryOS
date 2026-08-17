@@ -1,0 +1,42 @@
+# Second Brain Sync — local dev stack.
+# Per §6 of the blueprint: Neo4j only. ChromaDB runs embedded in the
+# backend process (no separate container needed at solo-user scale), and
+# the backend itself runs with uvicorn on the host for development.
+#
+# Usage:
+#   docker compose up -d neo4j
+#   # wait for http://localhost:7474 to respond, then:
+#   cd backend && uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+#
+# First-time password setup: open http://localhost:7474 in a browser,
+# log in with neo4j / the NEO4J_PASSWORD from .env, and follow the prompt
+# to set a new password (or just keep the one in .env for local-only use).
+
+services:
+  neo4j:
+    image: neo4j:5-community
+    container_name: sbs-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"   # HTTP browser UI
+      - "7687:7687"   # Bolt protocol (what the backend uses)
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-change-me-on-first-boot}
+      # Disable the noisy telemetry — solo dev, no need.
+      - NEO4J_server_memory_heap_initial__size=256m
+      - NEO4J_server_memory_heap_max__size=512m
+      - NEO4J_server_memory_pagecache_size=256m
+      - NEO4J_dbms_security_procedures_unrestricted=gds.*
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  neo4j_data:
+  neo4j_logs:

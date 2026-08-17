@@ -1,0 +1,57 @@
+[project]
+name = "second-brain-sync-backend"
+version = "0.1.0"
+description = "Personal memory layer for LLM web chats — backend."
+readme = "../README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "toadsage01", email = "iammanas17@gmail.com" }]
+dependencies = [
+    # Web framework
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.34.0",
+    # Pydantic / settings
+    "pydantic==2.10.4",
+    "pydantic-settings==2.7.0",
+    "python-dotenv==1.0.1",
+    # Neo4j driver
+    "neo4j==5.26.0",
+    # ChromaDB (embedded persistent client, no separate process)
+    "chromadb==0.5.23",
+    # BM25 — small, no ML deps
+    "rank-bm25==0.2.2",
+    # HTTP for embedding / curator calls (one client, no provider SDK lock-in)
+    "httpx==0.27.2",
+    # Sentence-transformers fallback if EMBEDDING_PROVIDER=local
+    "sentence-transformers==3.4.1",
+    # CLI tooling
+    "typer==0.15.1",
+    "rich==13.9.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
+    "pytest-asyncio==0.24.0",
+    "httpx==0.27.2",     # for TestClient
+    "ruff==0.8.4",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP"]
+ignore = ["E501"]  # let formatter own line length
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

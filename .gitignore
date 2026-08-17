@@ -1,0 +1,65 @@
+# Secrets — must be the first entry. Never commit .env, ever.
+.env
+.env.*
+!.env.example
+
+# Local stores — never commit personal memory data.
+data/
+data/chroma/
+chroma_db/
+*.duckdb
+*.db
+*.db-journal
+
+# Neo4j local mount (if you run without compose)
+neo4j_data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Editor / OS cruft
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build artifacts from extension packaging
+extension/*.zip
+extension/_output/
+
+# Logs
+*.log
+logs/
