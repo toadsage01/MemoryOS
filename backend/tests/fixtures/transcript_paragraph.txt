@@ -1,0 +1,23 @@
+This is a narrative-style transcript without explicit speaker markers. The
+chunker should fall back to paragraph-based splitting when it doesn't see
+two or more speaker-prefixed turns at the start of the text.
+
+We were deciding between FastAPI and Flask for the backend. Flask is
+older and more familiar, but FastAPI's Pydantic integration is cleaner
+for this kind of schema-heavy project, and the auto-generated OpenAPI
+docs make the local token-auth endpoint easier to test from a curl one-
+liner. The call was to go with FastAPI.
+
+We also discussed the choice between a Manifest V2 vs V3 extension. V2
+is deprecated and will stop working in current Chrome versions, so V3 is
+the only sane path. The service worker constraints are annoying but
+workable: the auth token lives in chrome.storage.local and is read by
+the service worker once on extension load.
+
+For the dedup threshold, 0.7 was picked as a starting guess and flagged
+as needing real-world tuning. The blueprint is explicit that this number
+is not validated.
+
+For the brief length, the hard constraint is 300 words. Truncate rather
+than overflow. The user has been firm on this — silently returning a
+longer brief would be a bug.

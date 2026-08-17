@@ -1,0 +1,25 @@
+User: I'm building a small personal tool that gives my LLM web chats access to shared project memory. The architecture is a FastAPI backend plus a browser extension. Should I use Postgres for the memory store, or would Neo4j make more sense?
+
+Assistant: For a single-user personal memory tool with hundreds to low thousands of documents, you have a few options. If your data is mostly free-form text and you're doing keyword search, Postgres with full-text search is the simpler choice. But if you want to model relationships between projects, decisions, goals, and entities — which your spec calls for — Neo4j will make those queries far more natural to write and faster to run.
+
+User: That tracks. I'll go with Neo4j for the graph and ChromaDB for the dense vector store. What about sparse retrieval — should I use Chroma's built-in or a separate BM25?
+
+Assistant: Separate BM25 with rank-bm25. It's small, stable, and gives you full control of the fusion score layout. Chroma's BM25 support has been on and off the roadmap; a standalone library avoids that uncertainty.
+
+User: Decision made — Neo4j for graph, ChromaDB embedded for dense, rank-bm25 for sparse. Now the embedding provider question.
+
+Assistant: For free-tier solo use, Google Gemini's text-embedding-004 is a solid default. One HTTP call, no SDK lock-in. If you want offline fallback, sentence-transformers all-MiniLM-L6-v2 is a fine second option.
+
+User: Goal for this build: get the brief under 300 words hard. Truncate rather than overflow. Don't ever silently pad.
+
+Assistant: That's a clean constraint — pin it in the prompt as a hard limit, and check the word count after the model responds. If it overflows, truncate at a word boundary and append "[truncated]" so the user knows.
+
+User: What's a sensible dedup threshold to start?
+
+Assistant: 0.7 on the fused RRF score is a reasonable starting point, but treat it as a guess. You'll need to tune it against a handful of real cases once you have actual captures to compare against.
+
+User: One more — should the ingest pipeline be a BackgroundTask or a queue?
+
+Assistant: BackgroundTask. At solo-user throughput you won't hit a wall. Only escalate to Celery or Redis if you measure a real problem, and document why in your report.
+
+User: Thanks — that's enough to start building.
